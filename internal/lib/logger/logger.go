@@ -11,11 +11,9 @@ const (
 	envProd  = "prod"
 )
 
-type Logger struct {
-	*slog.Logger
-}
+var logger slog.Logger
 
-func SetupLogger(env string) *Logger {
+func SetupLogger(env string) *slog.Logger {
 	var handler slog.Handler
 
 	switch env {
@@ -26,9 +24,10 @@ func SetupLogger(env string) *Logger {
 	case envProd:
 		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
 	}
-	return &Logger{slog.New(handler)}
+	logger = *slog.New(handler)
+	return &logger
 }
 
-func (l *Logger) Err(err error) slog.Attr {
+func Err(err error) slog.Attr {
 	return slog.String("error", err.Error())
 }

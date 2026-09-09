@@ -3,6 +3,7 @@ package main
 import (
 	"log/slog"
 
+	"github.com/pchek28/sso/internal/app"
 	"github.com/pchek28/sso/internal/config"
 	logger "github.com/pchek28/sso/internal/lib/logger"
 )
@@ -14,7 +15,8 @@ func main() {
 
 	log.Info("starting application", slog.Any("config", cfg))
 
-	//logger(slog)
+	application := app.New(log, cfg.GRPC.Port, cfg.StoragePath, cfg.TokenTTL)
 
-	//app
+	application.MustRun()
+
 }
