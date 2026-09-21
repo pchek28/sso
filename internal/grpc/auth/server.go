@@ -19,14 +19,18 @@ func (s *serverAPI) Login(
 	ctx context.Context,
 	req *ssov1.LoginRequest,
 ) (*ssov1.LoginResponse, error) {
-	panic("not implemented")
+	return &ssov1.LoginResponse{
+		Token: "token1234",
+	}, nil
 }
+
 func (s *serverAPI) Register(
 	ctx context.Context,
 	req *ssov1.RegisterRequest,
 ) (*ssov1.RegisterResponse, error) {
 	panic("not implemented")
 }
+
 func (s *serverAPI) IsAdmin(
 	ctx context.Context,
 	req *ssov1.IsAdminRequest,
