@@ -2,6 +2,9 @@ package main
 
 import (
 	"log/slog"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/pchek28/sso/internal/app"
 	"github.com/pchek28/sso/internal/config"
@@ -19,4 +22,14 @@ func main() {
 
 	application.MustRun()
 
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+
+	sign := <-stop
+
+	log.Info("stopping application", slog.String("signal", sign.String()))
+
+	application.Stop()
+
+	log.Info("application stopped")
 }

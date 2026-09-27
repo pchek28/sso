@@ -53,10 +53,11 @@ func (a *App) Run() error {
 
 	log.Info("starting gRPC server", slog.String("addr", l.Addr().String()))
 
-	if err := a.gRPCServer.Serve(l); err != nil {
-		log.Error("failed to serve gRPC server", slog.String("error", err.Error()))
-		return fmt.Errorf("%s: failed to serve gRPC server: %w", op, err)
-	}
+	go func() {
+		if err := a.gRPCServer.Serve(l); err != nil {
+			log.Error("failed to serve gRPC server", slog.String("error", err.Error()))
+		}
+	}()
 
 	return nil
 }
