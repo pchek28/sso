@@ -38,6 +38,7 @@ func NewConfig() (*Config, error) {
 func NewConfigMust() *Config {
 	cfg, err := NewConfig()
 	if err != nil {
+		err = fmt.Errorf("get env keys %w", err)
 		panic(err)
 	}
 	return cfg

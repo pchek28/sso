@@ -5,6 +5,7 @@ import (
 	"net"
 
 	ssov1 "github.com/pchek28/protos/gen/go/sso"
+	core_config "github.com/pchek28/sso/internal/core/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -14,6 +15,8 @@ type server struct {
 }
 
 func main() {
+	cfg := core_config.NewConfigMust()
+
 	lis, err := net.Listen("tcp", ":44044")
 	if err != nil {
 		log.Fatal(err)
