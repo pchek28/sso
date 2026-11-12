@@ -2,37 +2,41 @@ package core_config
 
 import (
 	"fmt"
-	"os"
 	"time"
+
+	"github.com/kelseyhightower/envconfig"
 )
 
+type Location struct{ *time.Location }
+
+func (l *Location) Decode(value string) error {
+	zone, err := time.LoadLocation(value)
+	if err != nil {
+		return fmt.Errorf("load time zone: %q: %w", value, err)
+	}
+
+	l.Location = zone
+	return nil
+}
+
 type Config struct {
-	TimeZone        *time.Location
-	GRPCPort        string
-	Issuer          string
-	PrivateKeyPath  string
-	AccessTTL       time.Duration
-	RefreshTTL      time.Duration
-	ShutdownTimeout time.Duration
+	TimeZone        *time.Location `envconfig:"TIME_ZONE" default:"UTC"`
+	GRPCPort        string         `envconfig:"GRPC_PORT" default:"44044"`
+	Issuer          string         `envconfig:"JWT_ISSUER" default:"sso"`
+	PrivateKeyPath  string         `envconfig:"JWT_PRIVATE_KEY_PATH" default:"keys/private.pem"`
+	AccessTTL       time.Duration  `envconfig:"ACCESS_TTL" default:"15m"`
+	RefreshTTL      time.Duration  `envconfig:"REFRESH_TTL" default:"720h"`
+	ShutdownTimeout time.Duration  `envconfig:"SHUTDOWN_TIMEOUT" default:"10s"`
 }
 
 func NewConfig() (*Config, error) {
-	tz := GetFromENV("TIME_ZONE", "UTC")
+	var config Config
 
-	zone, err := time.LoadLocation(tz)
-	if err != nil {
-		return nil, fmt.Errorf("load time zone: %s: %w", tz, err)
+	if err := envconfig.Process("", &config); err != nil {
+		return nil, fmt.Errorf("load config: %w", err)
 	}
 
-	return &Config{
-		TimeZone:        zone,
-		GRPCPort:        GetFromENV("GRPC_PORT", "44044"),
-		Issuer:          GetFromENV("JWT_ISSUER", "sso"),
-		PrivateKeyPath:  GetFromENV("JWT_PRIVATE_KEY_PATH", "keys/private.pem"),
-		AccessTTL:       15 * time.Minute,
-		RefreshTTL:      720 * time.Hour,
-		ShutdownTimeout: 10 * time.Second,
-	}, nil
+	return &config, nil
 }
 
 func NewConfigMust() *Config {
@@ -42,11 +46,4 @@ func NewConfigMust() *Config {
 		panic(err)
 	}
 	return cfg
-}
-
-func GetFromENV(key string, def string) string {
-	if data := os.Getenv(key); data != "" {
-		return data
-	}
-	return def
 }
