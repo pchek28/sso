@@ -5,12 +5,11 @@ services:
       context: ${PROJECT_ROOT}
       dockerfile: Dockerfile
     container_name: sso
-    # environment:
+    volumes:
+      - ${PROJECT_ROOT}/.out/logs:/app/.out/logs:Z
     depends_on:
       sso-postgres:
         condition: service_healthy
-      sso-postgres-migrate:
-        condition: service_completed_successfully
     ports:
       # только для разработки (grpcurl с компьютера); в проде убрать
       - "127.0.0.1:44044:44044"

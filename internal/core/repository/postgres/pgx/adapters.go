@@ -32,7 +32,8 @@ type pgxCommandTag struct {
 
 func mapErrors(err error) error {
 	const (
-		pgxViolatsForeignKeyErrorCode = "23503"
+		pgxViolatsForeignKeyErrorCode               = "23503"
+		pgxViolatesDuplicateUniqueValueKeyErrorCode = "23505"
 	)
 
 	if err != nil {
@@ -42,20 +43,13 @@ func mapErrors(err error) error {
 
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			if pgErr.Code == pgxViolatsForeignKeyErrorCode {
-				return fmt.Errorf(
-					"%v: %w",
-					err,
-					core_postgres_pool.ErrViolatesForeignKey,
-				)
+			switch pgErr.Code {
+			case pgxViolatsForeignKeyErrorCode:
+				return fmt.Errorf("%v: %w", err, core_postgres_pool.ErrViolatesForeignKey)
+			case pgxViolatesDuplicateUniqueValueKeyErrorCode:
+				return fmt.Errorf("%v: %w", err, core_postgres_pool.ErrUniqueViolation)
 			}
 		}
-		return err
 	}
-
-	return fmt.Errorf(
-		"%v: %w",
-		err,
-		core_postgres_pool.ErrUnknown,
-	)
+	return err
 }
