@@ -46,7 +46,35 @@ migrate-down:
 
 migrate-action:
 	@if [ -z "$(action)"]; then \
-		echo "Error: Please provide a migration using 'make migrate-action action=<up|down>'"
+		echo "Error: Please provide a migration using 'make migrate-action action=<up|down>'"; \
 		exit 1; \
+	fi; \
+	echo "Waiting for PostgreSQL to be ready..."; \
+	docker compose run --rm todoapp-postgres-migrate \
+		-path /migrations \
+		-database "postgres://${POSTGRES_USER}:$(POSTGRES_PASSWORD)@sso-postgres:5433/$(POSTGRES_DB)?sslmode=disable" \
+		force 1
+
+logs-cleanup:
+	@read -p "Are you sure you want to remove the log files? (y/n): " confrim; \
+	if ["$$confrim" = "y"] || [ "$$confrim" = "Y"]; then \
+		rm -rf ${PROJECT_ROOT}/.out/logg; \
+		echo "Log files removed."; \
+	else \
+		echo "Operation canceled."; \
+	fi
+
+sso-run:
+	@export LOGGER_FOLDER=${PROJECT_ROOT}/.out/logs; \
+	export POSTGRES_HOST=localhost; \
+	go mod tidy; \
+	go run ${PROJECT_ROOT}/cmd/sso/main.go
+
+sso-deploy:
+	@docker compose up -d --build sso
+
+sso-undeploy:
+	@docker compose down --remove-orphans sso
+		
 
 
