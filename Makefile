@@ -6,6 +6,7 @@ export GID := $(shell id -g)
 export PROJECT_ROOT := $(shell pwd)
 
 env-up:
+	@mkdir -p .out/logs .out/pgdata
 	@docker compose up -d sso-postgres
 
 env-down:
@@ -28,32 +29,32 @@ env-port-close:
 	@docker compose down port-forwarder
 
 migrate-create:
-	@if [ -z "$(seq)"]; then \
+	@if [ -z "$(seq)" ]; then \
 		echo "Error: Please provide a migration name using 'make migrate-create seq=<migration_name>'"; \
 		exit 1; \
 	fi; \
-	docker compose run --rm todoapp-postgres-migrate \
+	docker compose run --rm sso-postgres-migrate \
 		create \
 		-ext sql \
 		-dir /migrations \
 		-seq "$(seq)"
 
 migrate-up:
-	@make migrare-action action=up
+	@make migrate-action action=up
 
 migrate-down:
-	@make migrare-action action=down
+	@make migrate-action action=down
 
 migrate-action:
-	@if [ -z "$(action)"]; then \
+	@if [ -z "$(action)" ]; then \
 		echo "Error: Please provide a migration using 'make migrate-action action=<up|down>'"; \
 		exit 1; \
 	fi; \
 	echo "Waiting for PostgreSQL to be ready..."; \
-	docker compose run --rm todoapp-postgres-migrate \
+	docker compose run --rm sso-postgres-migrate \
 		-path /migrations \
-		-database "postgres://${POSTGRES_USER}:$(POSTGRES_PASSWORD)@sso-postgres:5433/$(POSTGRES_DB)?sslmode=disable" \
-		force 1
+		-database "postgres://${POSTGRES_USER}:$(POSTGRES_PASSWORD)@sso-postgres:5432/$(POSTGRES_DB)?sslmode=disable" \
+		up
 
 logs-cleanup:
 	@read -p "Are you sure you want to remove the log files? (y/n): " confrim; \

@@ -20,13 +20,13 @@ func (l *Location) Decode(value string) error {
 }
 
 type Config struct {
-	TimeZone        *time.Location `envconfig:"TIME_ZONE" default:"UTC"`
-	GRPCPort        string         `envconfig:"GRPC_PORT" default:"44044"`
-	Issuer          string         `envconfig:"JWT_ISSUER" default:"sso"`
-	PrivateKeyPath  string         `envconfig:"JWT_PRIVATE_KEY_PATH" default:"keys/private.pem"`
-	AccessTTL       time.Duration  `envconfig:"ACCESS_TTL" default:"15m"`
-	RefreshTTL      time.Duration  `envconfig:"REFRESH_TTL" default:"720h"`
-	ShutdownTimeout time.Duration  `envconfig:"SHUTDOWN_TIMEOUT" default:"10s"`
+	TimeZone        Location      `envconfig:"TIME_ZONE" default:"UTC"`
+	GRPCPort        string        `envconfig:"GRPC_PORT" default:"44044"`
+	Issuer          string        `envconfig:"JWT_ISSUER" default:"sso"`
+	PrivateKeyPath  string        `envconfig:"JWT_PRIVATE_KEY_PATH" default:"keys/private.pem"`
+	AccessTTL       time.Duration `envconfig:"ACCESS_TTL" default:"15m"`
+	RefreshTTL      time.Duration `envconfig:"REFRESH_TTL" default:"720h"`
+	ShutdownTimeout time.Duration `envconfig:"SHUTDOWN_TIMEOUT" default:"10s"`
 }
 
 func NewConfig() (*Config, error) {
