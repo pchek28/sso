@@ -24,7 +24,7 @@ type server struct {
 
 func main() {
 	cfg := core_config.NewConfigMust()
-	time.Local = cfg.TimeZone
+	time.Local = cfg.TimeZone.Location
 
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
@@ -38,6 +38,10 @@ func main() {
 		fmt.Println("failed to init application logger", err)
 		os.Exit(1)
 	}
+	defer func() {
+		_ = log.Sync()
+		_ = log.Close()
+	}()
 	ctx = core_logger.ToContext(ctx, log)
 
 	log.Debug("application time zone", zap.Any("zone", time.Local))
