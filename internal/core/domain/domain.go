@@ -24,7 +24,7 @@ type RefreshToken struct {
 	ExpiresAt time.Time
 }
 
-type Token struct {
+type Tokens struct {
 	Access    string
 	Refresh   string
 	ExpiresIn int64 // lifetime

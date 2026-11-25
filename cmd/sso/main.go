@@ -13,6 +13,10 @@ import (
 	core_config "github.com/pchek28/sso/internal/core/config"
 	core_logger "github.com/pchek28/sso/internal/core/logger"
 	core_pgx_pool "github.com/pchek28/sso/internal/core/repository/postgres/pgx"
+	core_security "github.com/pchek28/sso/internal/core/security"
+	auth_repository "github.com/pchek28/sso/internal/features/repository/postgres"
+	auth_service "github.com/pchek28/sso/internal/features/service"
+	auth_transport_grpc "github.com/pchek28/sso/internal/features/transport/grpc"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -52,13 +56,25 @@ func main() {
 	}
 	defer pool.Close()
 
+	key, err := core_security.LoadEd25519Key(cfg.PrivateKeyPath)
+	if err != nil {
+		log.Fatal("load private key", zap.String("path", cfg.PrivateKeyPath), zap.Error(err))
+	}
+	issuer := core_security.NewJWTIssuer(key, cfg.Issuer, cfg.AccessTTL)
+
+	authRepo := auth_repository.New(pool)
+	authService, err := auth_service.New(authRepo, issuer, cfg.RefreshTTL)
+	if err != nil {
+		log.Fatal("init auth service", zap.Error(err))
+	}
+
 	lis, err := net.Listen("tcp", ":"+cfg.GRPCPort)
 	if err != nil {
 		log.Fatal("listen", zap.String("port", cfg.GRPCPort), zap.Error(err))
 	}
 
 	g := grpc.NewServer()
-	ssov1.RegisterAuthServer(g, &server{})
+	ssov1.RegisterAuthServer(g, auth_transport_grpc.New(authService, log))
 	reflection.Register(g)
 
 	serveErr := make(chan error, 1)
